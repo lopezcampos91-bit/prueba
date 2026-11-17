@@ -1,0 +1,638 @@
+<title>Fichas de Infantil</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Nunito:wght@400;700;800&display=swap">
+<style>
+/* Layout: one-screen app — a slim top bar, a big play stage in the middle, giant answer tiles along the bottom.
+   Single light look on purpose: a bright classroom sheet, the same on any device. */
+:root{
+  --sky:#E8F2F9; --card:#FFFFFF; --ink:#22314A; --soft:#5A6A80; --line:#D3E1EC; --mist:#F3F8FC;
+  --num:#E25B37; --let:#2A72D2; --tra:#26975A; --for:#8456D2; --ser:#C9870E;
+  --ok:#26975A; --bad:#D24A45; --gold:#F4B400;
+  --display:'Baloo 2','Nunito',system-ui,sans-serif;
+  --body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --glyph:'Andika','Nunito',system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%}
+body{background:var(--sky);color:var(--ink);font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;overflow:hidden}
+#app{height:100%;max-width:980px;margin:0 auto;box-sizing:border-box;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px;display:flex;flex-direction:column}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:16px}
+.scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:24px}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:3px solid var(--let);outline-offset:3px}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.1;text-wrap:balance}
+
+/* top bar */
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.hello{flex:1;min-width:0}
+.hello h1{font-size:clamp(28px,6vw,42px);font-weight:800}
+.hello p{margin:2px 0 0;color:var(--soft);font-weight:700}
+.hello p::first-letter{text-transform:uppercase}
+.parent{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;background:var(--card);border:2px solid var(--line);color:var(--soft);font-weight:800;font-size:14px;position:relative;overflow:hidden}
+.parent .fill{position:absolute;inset:0;background:#DCE8F3;transform-origin:left;transform:scaleX(0)}
+.parent.hold .fill{transform:scaleX(1);transition:transform 1.4s linear}
+.parent span,.parent svg{position:relative}
+.hint{font-size:12px;color:var(--soft);text-align:right;min-height:16px}
+
+/* today's sheets */
+.label{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
+.sheets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.sheet{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;padding:18px;border-radius:22px;background:var(--card);border:3px solid var(--line);box-shadow:0 6px 0 var(--line);transition:transform .15s}
+.sheet:active{transform:translateY(4px);box-shadow:0 2px 0 var(--line)}
+.sheet .art{width:100%;aspect-ratio:16/9;max-width:100%;border-radius:14px;display:grid;place-items:center;color:#fff;font-family:var(--glyph);font-weight:700;font-size:clamp(30px,6vw,50px);letter-spacing:.08em}
+.sheet h2{font-size:24px;font-weight:800}
+.sheet small{color:var(--soft);font-weight:700;font-size:13px}
+.sheet.next{border-color:var(--ink);box-shadow:0 6px 0 var(--ink);animation:nudge 2.4s ease-in-out infinite}
+.sheet.done{opacity:.72}
+.sheet .tick{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;background:var(--ok);display:grid;place-items:center;box-shadow:0 3px 0 rgba(0,0,0,.15)}
+@keyframes nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+.rest{background:var(--card);border:3px solid var(--line);border-radius:22px;padding:28px 22px;display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.rest h2{font-size:30px}
+.rest p{margin:6px 0 0;color:var(--soft);font-weight:700;max-width:46ch}
+
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.day{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:96px}
+.day b{font-family:var(--display);font-size:16px}
+.day .stk{font-size:34px;line-height:1;height:38px;display:grid;place-items:center}
+.day .dots{display:flex;gap:3px}
+.day .dots i{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.day .dots i.on{background:var(--ok)}
+.day.today{border-color:var(--ink);border-width:3px}
+.day.off{background:var(--mist);color:var(--soft)}
+.day.off .stk{font-size:13px;font-weight:700;color:var(--soft)}
+.album{display:flex;flex-wrap:wrap;gap:6px;font-size:34px;line-height:1;background:var(--card);border:2px dashed var(--line);border-radius:18px;padding:12px;min-height:58px;align-items:center}
+.album em{font-size:14px;font-style:normal;color:var(--soft);font-weight:700}
+
+/* activity */
+.top{display:flex;align-items:center;gap:10px}
+.round{width:56px;height:56px;border-radius:50%;background:var(--card);border:3px solid var(--line);display:grid;place-items:center;flex:none}
+.round:active{transform:scale(.94)}
+.progress{flex:1;display:flex;justify-content:center;gap:8px}
+.progress i{width:18px;height:18px;border-radius:50%;background:var(--card);border:3px solid var(--line)}
+.progress i.on{background:var(--gold);border-color:#D89A00}
+.progress i.cur{border-color:var(--ink)}
+.prompt{text-align:center;font-family:var(--display);font-weight:800;font-size:clamp(24px,5vw,38px);min-height:1.2em}
+.stage{flex:1;min-height:0;background:var(--card);border-radius:26px;border:3px solid var(--line);display:grid;place-items:center;position:relative;overflow:hidden}
+.visual{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;padding:12px;max-width:100%}
+.count{display:grid;grid-template-columns:repeat(5,auto);gap:6px 12px;justify-content:center}
+.count span{font-size:clamp(44px,10vw,100px);line-height:1;animation:pop .35s both}
+.count.small span{font-size:clamp(26px,5vw,40px)}
+.plus{font-family:var(--glyph);font-size:clamp(40px,8vw,64px);font-weight:700;color:var(--soft)}
+.pic{font-size:clamp(90px,20vw,150px);line-height:1;animation:pop .35s both}
+.word{font-family:var(--glyph);font-size:clamp(32px,7vw,56px);font-weight:700;letter-spacing:.12em}
+.word b{color:var(--let)}
+.seq{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+.seq .shape{width:clamp(50px,10vw,84px);height:clamp(50px,10vw,84px)}
+.slot{width:clamp(50px,10vw,84px);height:clamp(50px,10vw,84px);border-radius:16px;border:4px dashed var(--soft);display:grid;place-items:center;font-family:var(--display);font-size:40px;font-weight:800;color:var(--soft)}
+.listen{width:120px;height:120px;border-radius:50%;background:var(--mist);display:grid;place-items:center;border:3px solid var(--line)}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+
+.options{display:grid;gap:14px;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));padding-bottom:4px}
+.opt{background:var(--card);border:4px solid var(--line);border-radius:24px;min-height:clamp(96px,17vh,150px);display:grid;place-items:center;box-shadow:0 6px 0 var(--line);padding:8px;transition:transform .12s}
+.opt:active{transform:translateY(4px);box-shadow:0 2px 0 var(--line)}
+.opt .numeral,.opt .letter{font-family:var(--glyph);font-weight:700;font-size:clamp(56px,11vw,96px);line-height:1}
+.opt .emo{font-size:clamp(48px,10vw,80px);line-height:1}
+.opt .emo.big{font-size:clamp(70px,14vw,120px)}
+.opt .emo.little{font-size:clamp(30px,6vw,44px)}
+.opt .shape{width:clamp(64px,12vw,104px);height:clamp(64px,12vw,104px)}
+.opt.right{border-color:var(--ok);background:#E5F6EC;box-shadow:0 6px 0 var(--ok);animation:yay .5s}
+.opt.wrong{border-color:var(--bad);opacity:.45;animation:no .4s}
+.opt:disabled{cursor:default}
+@keyframes yay{40%{transform:scale(1.08)}}
+@keyframes no{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.tools{display:flex;justify-content:center;gap:12px}
+.btn{padding:14px 26px;border-radius:999px;font-weight:800;font-size:18px;background:var(--ink);color:#fff;box-shadow:0 4px 0 #0E1A2C}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #0E1A2C}
+.btn.ghost{background:var(--card);color:var(--ink);border:3px solid var(--line);box-shadow:0 4px 0 var(--line)}
+canvas{width:100%;height:100%;display:block;touch-action:none}
+
+/* reward */
+.reward{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
+.reward h1{font-size:clamp(34px,8vw,60px);font-weight:800}
+.reward p{margin:0;color:var(--soft);font-weight:700;font-size:18px}
+.stars{display:flex;gap:10px}
+.stars svg{width:clamp(56px,12vw,90px);height:auto;animation:pop .5s both}
+.big-sticker{font-size:clamp(110px,26vw,190px);line-height:1;animation:spin .9s both}
+.level-up{background:var(--gold);color:var(--ink);font-family:var(--display);font-weight:800;font-size:20px;padding:8px 18px;border-radius:999px}
+.actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+@keyframes spin{from{transform:scale(0) rotate(-200deg)}to{transform:scale(1) rotate(0)}}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:5}
+.confetti i{position:absolute;top:-20px;width:12px;height:18px;border-radius:3px;animation:fall 1.8s ease-in forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+
+/* parents */
+.panel{display:flex;flex-direction:column;gap:18px;max-width:760px;width:100%;margin:0 auto;-webkit-user-select:text;user-select:text}
+.box{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.box h2{font-size:22px}
+.box p,.box li{margin:0;line-height:1.55;color:#36465E;max-width:68ch}
+.box ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.area{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.area:first-of-type{border-top:0}
+.area .sw{width:14px;height:44px;border-radius:7px}
+.area b{font-family:var(--display);font-size:18px}
+.area small{display:block;color:var(--soft);font-weight:700}
+.area .runs{display:flex;gap:4px;margin-top:4px}
+.area .runs i{width:22px;height:8px;border-radius:4px;background:var(--line)}
+.area .runs i.good{background:var(--ok)}
+.area .runs i.mid{background:var(--gold)}
+.area .runs i.low{background:var(--bad)}
+.stepper{display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums;font-weight:800}
+.stepper button{width:38px;height:38px;border-radius:50%;border:2px solid var(--line);font-size:20px;font-weight:800;background:var(--mist)}
+.row{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap}
+.row label{font-weight:700}
+input[type=text]{font:inherit;font-size:18px;padding:10px 14px;border-radius:12px;border:2px solid var(--line);background:var(--mist);color:var(--ink);min-width:0;flex:1}
+.switch{width:58px;height:34px;border-radius:999px;background:var(--line);position:relative;flex:none}
+.switch::after{content:"";position:absolute;top:4px;left:4px;width:26px;height:26px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch[aria-checked=true]{background:var(--ok)}
+.switch[aria-checked=true]::after{left:28px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--soft);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.danger{color:var(--bad);border-color:#F0C9C7}
+.muted{color:var(--soft);font-size:14px}
+
+@media (max-width:640px){
+  .sheets{grid-template-columns:1fr}
+  .sheet{flex-direction:row;align-items:center}
+  .sheet .art{width:96px;aspect-ratio:1;font-size:26px;flex:none}
+  .week{gap:4px}
+  .day{min-height:84px}
+  .day .stk{font-size:26px}
+  .options{gap:10px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   Fichas de Infantil — método tipo Kumon, de lunes a jueves
+   ========================================================= */
+const $ = s => document.querySelector(s);
+const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const sample = (a, n) => shuffle(a).slice(0, n);
+const NUMW = ['cero','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez'];
+const COLORS_HEX = { num:'#E25B37', let:'#2A72D2', tra:'#26975A', for:'#8456D2', ser:'#C9870E' };
+
+/* ---------- Plan de la semana ----------
+   Cada día: Números + Letras + una tercera ficha que rota. */
+const PLAN = { 1:['num','let','tra'], 2:['num','let','for'], 3:['num','let','tra'], 4:['num','let','ser'] };
+const DAYNAMES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+const AREAS = {
+  num:{ name:'Números', art:'1 2 3', levels:['Contar hasta 3','Contar hasta 5','Reconocer del 1 al 5','Contar hasta 10','Reconocer del 1 al 10','¿Dónde hay más?','Sumar hasta 5'] },
+  let:{ name:'Letras', art:'A E I', levels:['Vocales A y E','Vocales A, E, I','Las cinco vocales','¿Con qué vocal empieza?','Primeras consonantes: M P S L','¿Con qué letra empieza?'] },
+  tra:{ name:'Trazos', art:'', levels:['Líneas de lado','Líneas hacia abajo','Líneas inclinadas','Ondas','Zigzag','Círculos','Letras y números'] },
+  for:{ name:'Formas y colores', art:'', levels:['Colores básicos','Todos los colores','Formas básicas','Más formas','Forma y color juntos'] },
+  ser:{ name:'Lógica', art:'', levels:['Grande y pequeño','¿Cuál es diferente?','Series de dos','Series de tres'] },
+};
+const ITEMS_PER_SHEET = 5, TRACE_PER_SHEET = 4;
+const PASS = 0.8, PASSES_NEEDED = 2;
+
+/* ---------- Estado (guardado en este dispositivo) ---------- */
+const KEY = 'fichas-infantil-v1';
+const fresh = () => ({ name:'', levels:{num:0,let:0,tra:0,for:0,ser:0}, runs:{num:[],let:[],tra:[],for:[],ser:[]}, history:[], done:{}, album:[], anyDay:false, voice:true });
+let S = fresh();
+try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(fresh(), JSON.parse(raw)); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+const pad = n => String(n).padStart(2,'0');
+const dkey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const today = () => new Date();
+function todaysPlan() {
+  const wd = today().getDay();
+  if (PLAN[wd]) return PLAN[wd];
+  return S.anyDay ? PLAN[1 + (today().getDate() % 4)] : null;
+}
+
+/* ---------- Voz y sonidos ---------- */
+let voice = null;
+function loadVoice() {
+  if (!('speechSynthesis' in window)) return;
+  const vs = speechSynthesis.getVoices();
+  voice = vs.find(v => /^es[-_]ES/i.test(v.lang)) || vs.find(v => /^es/i.test(v.lang)) || null;
+}
+if ('speechSynthesis' in window) { loadVoice(); speechSynthesis.onvoiceschanged = loadVoice; }
+function speak(text) {
+  if (!S.voice || !('speechSynthesis' in window) || !text) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'es-ES'; if (voice) u.voice = voice; u.rate = 0.88; u.pitch = 1.1;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+let actx = null;
+function tone(freqs, dur = 0.12, type = 'sine', vol = 0.15) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    let t = actx.currentTime;
+    freqs.forEach(f => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = type; o.frequency.value = f; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur); t += dur * 0.8;
+    });
+  } catch (e) {}
+}
+const chime = () => tone([660, 880, 1175], 0.13, 'triangle');
+const bonk = () => tone([220, 180], 0.12, 'sine', 0.1);
+const PRAISE = ['¡Muy bien!','¡Genial!','¡Eso es!','¡Fenomenal!','¡Bravo!','¡Lo has conseguido!'];
+const RETRY = ['Casi. Prueba otra vez.','Mmm, busca otra.','¡Inténtalo de nuevo!'];
+
+/* ---------- Dibujos ---------- */
+const SHAPES = {
+  circulo:{ n:'círculo', g:'m', svg:'<circle cx="50" cy="50" r="40"/>' },
+  cuadrado:{ n:'cuadrado', g:'m', svg:'<rect x="13" y="13" width="74" height="74" rx="4"/>' },
+  triangulo:{ n:'triángulo', g:'m', svg:'<polygon points="50,9 92,87 8,87"/>' },
+  estrella:{ n:'estrella', g:'f', svg:'<polygon points="50,6 61,38 95,38 68,58 78,92 50,72 22,92 32,58 5,38 39,38"/>' },
+  corazon:{ n:'corazón', g:'m', svg:'<path d="M50 88C20 66 6 50 6 32 6 18 17 8 30 8c10 0 16 6 20 14 4-8 10-14 20-14 13 0 24 10 24 24 0 18-14 34-44 56z"/>' },
+  rectangulo:{ n:'rectángulo', g:'m', svg:'<rect x="5" y="28" width="90" height="44" rx="4"/>' },
+};
+const COLORS = [
+  { m:'rojo', f:'roja', c:'#E53935' }, { m:'azul', f:'azul', c:'#1E6FE0' }, { m:'amarillo', f:'amarilla', c:'#FFCB2E' },
+  { m:'verde', f:'verde', c:'#2BA84A' }, { m:'naranja', f:'naranja', c:'#FB8A00' }, { m:'morado', f:'morada', c:'#8E44C9' },
+  { m:'rosa', f:'rosa', c:'#F26BAA' }, { m:'marrón', f:'marrón', c:'#8D5A3B' },
+];
+const shapeSVG = (k, c) => `<svg viewBox="0 0 100 100" class="shape" aria-hidden="true"><g fill="${c}" stroke="rgba(0,0,0,.2)" stroke-width="3" stroke-linejoin="round">${SHAPES[k].svg}</g></svg>`;
+const balloonSVG = c => `<svg viewBox="0 0 100 130" class="shape" aria-hidden="true"><path d="M50 97c-4 10 6 16 0 31" stroke="#8a97a8" stroke-width="2.5" fill="none"/><ellipse cx="50" cy="50" rx="36" ry="44" fill="${c}"/><polygon points="44,99 56,99 50,90" fill="${c}"/><ellipse cx="37" cy="32" rx="8" ry="13" fill="rgba(255,255,255,.45)"/></svg>`;
+const starSVG = on => `<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,6 61,38 95,38 68,58 78,92 50,72 22,92 32,58 5,38 39,38" fill="${on ? '#F4B400' : '#DCE6EF'}" stroke="${on ? '#D89A00' : '#C6D4E1'}" stroke-width="4" stroke-linejoin="round"/></svg>`;
+const ICON = {
+  home:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22314A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>',
+  sound:'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#22314A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="#22314A"/><path d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12"/></svg>',
+  ear:'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#5A6A80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="#5A6A80"/><path d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12"/></svg>',
+  lock:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>',
+  tick:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  moon:'<svg width="96" height="96" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="#E8F2F9"/><path d="M62 18a32 32 0 1 0 20 50A26 26 0 0 1 62 18z" fill="#F4B400"/><circle cx="26" cy="28" r="3" fill="#F4B400"/><circle cx="34" cy="78" r="2.5" fill="#F4B400"/><circle cx="80" cy="30" r="2" fill="#F4B400"/></svg>',
+};
+function artFor(area) {
+  if (area === 'tra') return '<svg viewBox="0 0 120 60" width="70%" aria-hidden="true"><path d="M8 40 Q 23 8 38 30 T 68 30 T 98 30 L112 18" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" stroke-dasharray="1 12"/></svg>';
+  if (area === 'for') return `<svg viewBox="0 0 120 60" width="70%" aria-hidden="true"><circle cx="26" cy="32" r="20" fill="#FFCB2E"/><polygon points="62,10 84,52 40,52" fill="#fff"/><rect x="92" y="14" width="24" height="38" rx="3" fill="#F26BAA"/></svg>`;
+  if (area === 'ser') return '<svg viewBox="0 0 120 60" width="70%" aria-hidden="true"><circle cx="16" cy="30" r="12" fill="#fff"/><rect x="36" y="18" width="24" height="24" rx="3" fill="#FFCB2E"/><circle cx="80" cy="30" r="12" fill="#fff"/><rect x="96" y="18" width="24" height="24" rx="5" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="4 4"/></svg>';
+  return AREAS[area].art;
+}
+
+/* ---------- Generadores de ejercicios ---------- */
+const OBJ = [
+  { ch:'🍎', pl:'manzanas', g:'f' }, { ch:'🐟', pl:'peces', g:'m' }, { ch:'⭐', pl:'estrellas', g:'f' },
+  { ch:'🚗', pl:'coches', g:'m' }, { ch:'🐥', pl:'pollitos', g:'m' }, { ch:'🌸', pl:'flores', g:'f' },
+  { ch:'🎈', pl:'globos', g:'m' }, { ch:'🐞', pl:'mariquitas', g:'f' }, { ch:'🍌', pl:'plátanos', g:'m' }, { ch:'🐸', pl:'ranas', g:'f' },
+];
+function numOpts(n, max, k = 3) {
+  const s = new Set([n]); let guard = 0;
+  while (s.size < k && guard++ < 50) { const v = guard < 20 ? n + pick([-2,-1,1,2]) : rand(1, max); if (v >= 1 && v <= max) s.add(v); }
+  return shuffle([...s]);
+}
+const countVis = (ch, n, small) => `<div class="count${small ? ' small' : ''}">${Array.from({length:n}, (_, i) => `<span style="animation-delay:${i*70}ms">${ch}</span>`).join('')}</div>`;
+const numeralOpts = (vals, n) => vals.map(v => ({ html:`<span class="numeral">${v}</span>`, ok:v === n }));
+
+function genNum(L) {
+  const count = max => { const n = rand(1, max), o = pick(OBJ); return { key:n, text:`¿${o.g === 'f' ? 'Cuántas' : 'Cuántos'} hay?`, say:`Vamos a contar. ¿${o.g === 'f' ? 'Cuántas' : 'Cuántos'} ${o.pl} hay?`, visual:countVis(o.ch, n), options:numeralOpts(numOpts(n, max), n) }; };
+  const recog = max => { const n = rand(1, max); return { key:n, text:`¿Dónde está el ${NUMW[n]}?`, say:`¿Dónde está el número ${NUMW[n]}?`, visual:`<div class="listen">${ICON.ear}</div>`, options:numeralOpts(numOpts(n, max), n) }; };
+  const more = () => { let a = rand(1, 6), b; do b = rand(1, 6); while (Math.abs(a - b) < 1); const o = pick(OBJ); return { key:a+'-'+b, text:'¿Dónde hay más?', say:`¿Dónde hay más ${o.pl}?`, visual:'', options:[a, b].map(v => ({ html:countVis(o.ch, v, true), ok:v === Math.max(a, b) })), n:2 }; };
+  const add = () => { const a = rand(1, 3), b = rand(1, 5 - a), o = pick(OBJ); return { key:a+'+'+b, text:`${a} y ${b}, ¿cuántos son?`, say:`${NUMW[a]} y ${NUMW[b]} más. ¿${o.g === 'f' ? 'Cuántas' : 'Cuántos'} ${o.pl} hay en total?`, visual:`${countVis(o.ch, a, true)}<span class="plus">+</span>${countVis(o.ch, b, true)}`, options:numeralOpts(numOpts(a + b, 5), a + b) }; };
+  return [() => count(3), () => count(5), () => recog(5), () => count(10), () => recog(10), more, add][L];
+}
+
+const VOW = {
+  A:[['abeja','🐝'],['avión','✈️'],['árbol','🌳'],['ardilla','🐿️']],
+  E:[['elefante','🐘'],['estrella','⭐'],['erizo','🦔'],['escoba','🧹']],
+  I:[['isla','🏝️'],['iguana','🦎'],['imán','🧲'],['insecto','🐛']],
+  O:[['oso','🐻'],['oveja','🐑'],['ojo','👁️'],['ola','🌊']],
+  U:[['uvas','🍇'],['unicornio','🦄'],['uno','1️⃣'],['urraca','🐦']],
+};
+const CONS = {
+  M:[['mono','🐒'],['moto','🏍️'],['mamá','👩'],['mesa','🪑']],
+  P:[['pato','🦆'],['perro','🐶'],['papá','👨'],['pez','🐟']],
+  S:[['sol','☀️'],['sapo','🐸'],['seta','🍄'],['silla','🪑']],
+  L:[['luna','🌙'],['león','🦁'],['lápiz','✏️'],['limón','🍋']],
+};
+const LNAME = { A:'a', E:'e', I:'i', O:'o', U:'u', M:'eme', P:'pe', S:'ese', L:'ele' };
+const wordHTML = w => { const up = w.toUpperCase(); return `<b>${up[0]}</b>${up.slice(1)}`; };
+const letterOpts = (set, L, k) => shuffle([L, ...sample(set.filter(x => x !== L), k - 1)]).map(x => ({ html:`<span class="letter">${x}</span>`, ok:x === L }));
+
+function genLet(Lv) {
+  const find = (set, dict, k) => { const L = pick(set), w = pick(dict[L]); return { key:L, text:`¿Dónde está la ${L}?`, say:`${LNAME[L]}, de ${w[0]}. ¿Dónde está la ${LNAME[L]}?`, visual:`<div class="pic">${w[1]}</div><div class="word">${wordHTML(w[0])}</div>`, options:letterOpts(set, L, k) }; };
+  const starts = (set, dict, k) => { const L = pick(set), w = pick(dict[L]); return { key:L+w[0], text:`¿Con qué letra empieza?`, say:`${w[0]}. ¿Con qué letra empieza ${w[0]}?`, visual:`<div class="pic">${w[1]}</div>`, options:letterOpts(set, L, k) }; };
+  const V = Object.keys(VOW), C = Object.keys(CONS);
+  return [
+    () => find(['A','E'], VOW, 2), () => find(['A','E','I'], VOW, 3), () => find(V, VOW, 3),
+    () => starts(V, VOW, 3), () => find(C, CONS, 3), () => starts(C, CONS, 3),
+  ][Lv];
+}
+
+function genFor(L) {
+  const col = pool => { const t = pick(pool); return { key:t.m, text:`Toca el globo ${t.m}`, say:`Toca el globo ${t.m}.`, visual:'', options:shuffle([t, ...sample(pool.filter(c => c !== t), 2)]).map(c => ({ html:balloonSVG(c.c), ok:c === t })) }; };
+  const shp = keys => { const k = pick(keys), S_ = SHAPES[k], art = S_.g === 'f' ? 'la' : 'el', c = pick(COLORS).c; return { key:k, text:`¿Dónde está ${art} ${S_.n}?`, say:`¿Dónde está ${art} ${S_.n}?`, visual:'', options:shuffle([k, ...sample(keys.filter(x => x !== k), 2)]).map(x => ({ html:shapeSVG(x, c), ok:x === k })) }; };
+  const both = () => {
+    const keys = ['circulo','cuadrado','triangulo','estrella','corazon'], cols = COLORS.slice(0, 6);
+    const k = pick(keys), c = pick(cols), sh = SHAPES[k], adj = sh.g === 'f' ? c.f : c.m, art = sh.g === 'f' ? 'la' : 'el';
+    const c2 = pick(cols.filter(x => x !== c)), k2 = pick(keys.filter(x => x !== k));
+    const opts = [{ k, c, ok:true }, { k, c:c2 }, { k:k2, c }, { k:pick(keys.filter(x => x !== k && x !== k2)), c:pick(cols.filter(x => x !== c)) }];
+    return { key:k+c.m, text:`Toca ${art} ${sh.n} ${adj}`, say:`Toca ${art} ${sh.n} ${adj}.`, visual:'', options:shuffle(opts).map(o => ({ html:shapeSVG(o.k, o.c.c), ok:!!o.ok })), n:4 };
+  };
+  return [() => col(COLORS.slice(0, 4)), () => col(COLORS), () => shp(['circulo','cuadrado','triangulo']), () => shp(['circulo','cuadrado','triangulo','estrella','corazon','rectangulo']), both][L];
+}
+
+const SIZED = [['perro','🐶','m'],['gato','🐱','m'],['casa','🏠','f'],['pelota','⚽','f'],['árbol','🌳','m'],['vaca','🐮','f'],['manzana','🍎','f'],['coche','🚗','m']];
+const DIFF = [['🐶','🐱'],['🍎','🍐'],['🚗','🚌'],['⭐','🌙'],['🐟','🐢'],['🌸','🍀'],['🐥','🐸'],['🍓','🍒'],['🐻','🐼']];
+function genSer(L) {
+  const size = () => { const [n, ch, g] = pick(SIZED), big = Math.random() < .5, adj = big ? 'grande' : (g === 'f' ? 'pequeña' : 'pequeño'), art = g === 'f' ? 'la' : 'el'; return { key:n+big, text:`Toca ${art} ${n} ${adj}`, say:`Toca ${art} ${n} ${adj}.`, visual:'', options:shuffle([{ html:`<span class="emo big">${ch}</span>`, ok:big }, { html:`<span class="emo little">${ch}</span>`, ok:!big }]), n:2 }; };
+  const diff = () => { const [a, b] = shuffle(pick(DIFF)); return { key:a+b, text:'¿Cuál es diferente?', say:'Mira bien. ¿Cuál es diferente?', visual:'', options:shuffle([a, a, a, b]).map(x => ({ html:`<span class="emo">${x}</span>`, ok:x === b })), n:4 }; };
+  const series = kind => {
+    const ks = sample(['circulo','cuadrado','triangulo','estrella','corazon'], 3), cs = sample(COLORS.slice(0, 7), 3);
+    const T = ks.map((k, i) => ({ id:i, html:shapeSVG(k, cs[i].c) }));
+    const pat = kind === 2 ? [T[0], T[1]] : pick([[T[0],T[0],T[1]], [T[0],T[1],T[2]], [T[0],T[1],T[1]]]);
+    const len = kind === 2 ? rand(4, 5) : 5, seq = Array.from({length:len}, (_, i) => pat[i % pat.length]), ans = pat[len % pat.length];
+    return { key:pat.map(p => p.id).join('')+len, text:'¿Qué va ahora?', say:'Mira la serie. ¿Qué va ahora?', visual:`<div class="seq">${seq.map(t => t.html).join('')}<div class="slot">?</div></div>`, options:shuffle(T).map(t => ({ html:t.html, ok:t.id === ans.id })) };
+  };
+  return [size, diff, () => series(2), () => series(3)][L];
+}
+
+/* Trazos: caminos en un lienzo de 100 × 60 */
+function dense(pts, step = 1.6) {
+  const out = [pts[0]];
+  for (let i = 1; i < pts.length; i++) {
+    const [x0, y0] = pts[i-1], [x1, y1] = pts[i], d = Math.hypot(x1 - x0, y1 - y0), n = Math.max(1, Math.round(d / step));
+    for (let j = 1; j <= n; j++) out.push([x0 + (x1 - x0) * j / n, y0 + (y1 - y0) * j / n]);
+  }
+  return out;
+}
+const arc = (cx, cy, rx, ry, a0, a1, n = 40) => Array.from({length:n+1}, (_, i) => { const a = a0 + (a1 - a0) * i / n; return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)]; });
+function genTra(L) {
+  const T = (key, text, pts, from, to) => ({ kind:'trace', key, text, say:text, path:dense(pts), from, to });
+  const horiz = () => { const y = pick([18, 30, 42]), [f, t, s] = pick([['🚗','🏠','Lleva el coche a casa'], ['🐝','🌻','Lleva la abeja a la flor'], ['🐭','🧀','Lleva el ratón al queso']]); return T('h'+y+f, s, [[12, y], [88, y]], f, t); };
+  const vert = () => { const x = pick([35, 50, 65]), [f, t, s] = pick([['🌧️','🌷','La lluvia cae a la flor'], ['🍎','🧺','La manzana cae a la cesta'], ['🕷️','🍃','La araña baja a la hoja']]); return T('v'+x+f, s, [[x, 8], [x, 52]], f, t); };
+  const diag = () => { const r = Math.random() < .5, [f, t, s] = pick([['⛷️','🏁','Baja la montaña'], ['🐌','🍃','Lleva el caracol a la hoja'], ['🛷','⛄','Baja con el trineo']]); return T('d'+r+f, s, r ? [[15, 8], [85, 52]] : [[85, 8], [15, 52]], f, t); };
+  const wave = () => { const p = Array.from({length:61}, (_, i) => [12 + i * 76/60, 30 + 13 * Math.sin(i / 60 * Math.PI * 4)]); const [f, t, s] = pick([['🐟','🐠','El pez nada por las olas'], ['🐬','🏝️','Lleva el delfín a la isla']]); return T('w'+f, s, p, f, t); };
+  const zig = () => { const n = pick([3, 4]), p = Array.from({length:n*2+1}, (_, i) => [12 + i * 76/(n*2), i % 2 ? 12 : 48]); const [f, t, s] = pick([['🐐','🏔️','Sube y baja las montañas'], ['🦘','🌳','Salta como el canguro']]); return T('z'+n+f, s, p, f, t); };
+  const circ = () => { const r = pick([20, 22]); return T('c'+r, pick(['Dibuja una pelota redonda', 'Dibuja el sol', 'Dibuja una rueda']), arc(50, 30, r, r, -Math.PI/2, -Math.PI/2 - Math.PI*2, 60), null, null); };
+  const glyph = () => {
+    const G = {
+      I:[[50, 8], [50, 52]], L:[[38, 8], [38, 52], [66, 52]], O:arc(50, 30, 17, 22, -Math.PI/2, -Math.PI/2 - Math.PI*2, 60),
+      U:[[36, 8], [36, 38], ...arc(50, 38, 14, 14, Math.PI, 0, 24), [64, 8]],
+      '1':[[40, 18], [52, 8], [52, 52]], '7':[[36, 10], [66, 10], [46, 52]],
+    };
+    const k = pick(Object.keys(G)), isNum = /\d/.test(k);
+    return T('g'+k, isNum ? `Repasa el número ${NUMW[+k]}` : `Repasa la letra ${k}`, G[k], null, null);
+  };
+  return [horiz, vert, diag, wave, zig, circ, glyph][L];
+}
+const GENS = { num:genNum, let:genLet, tra:genTra, for:genFor, ser:genSer };
+
+function buildSheet(area) {
+  const lvl = S.levels[area], gen = GENS[area](lvl), n = area === 'tra' ? TRACE_PER_SHEET : ITEMS_PER_SHEET, items = [];
+  for (let i = 0; i < n; i++) { let it, g = 0; do it = gen(); while (g++ < 25 && items.some(x => x.key === it.key) && (i < 6)); items.push(it); }
+  return items;
+}
+
+/* ---------- Pantallas ---------- */
+const app = $('#app');
+let session = null, busy = false, cleanup = null;
+function go(html) { if (cleanup) { cleanup(); cleanup = null; } document.querySelectorAll('.confetti').forEach(c => c.remove()); app.innerHTML = html; }
+
+function home() {
+  const plan = todaysPlan(), k = dkey(today()), doneToday = S.done[k] || [];
+  const dateTxt = today().toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+  const next = plan ? plan.find(a => !doneToday.includes(a)) : null;
+  let main;
+  if (plan) {
+    main = `<div class="label">Fichas de hoy</div><div class="sheets">${plan.map(a => {
+      const done = doneToday.includes(a);
+      return `<button class="sheet${done ? ' done' : ''}${a === next ? ' next' : ''}" data-area="${a}">
+        <div class="art" style="background:${COLORS_HEX[a]}">${artFor(a)}</div>
+        <div><h2>${AREAS[a].name}</h2><small>${AREAS[a].levels[S.levels[a]]}</small></div>
+        ${done ? `<span class="tick">${ICON.tick}</span>` : ''}</button>`; }).join('')}</div>`;
+    if (!next) main += `<div class="rest">${ICON.moon}<div><h2>¡Fichas de hoy terminadas!</h2><p>Ya tienes la pegatina del día. Mañana hay más.</p></div></div>`;
+  } else {
+    const wd = today().getDay(), back = wd === 5 ? 'el lunes' : wd === 6 ? 'pasado mañana, el lunes' : 'mañana, lunes';
+    main = `<div class="rest">${ICON.moon}<div><h2>Hoy es día de descanso</h2><p>Las fichas son de lunes a jueves. ¡Nos vemos ${back}! Hoy toca jugar, leer cuentos y salir al parque.</p></div></div>`;
+  }
+  // semana
+  const now = today(), mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  const week = [1,2,3,4,5,6,0].map((wd, i) => {
+    const d = new Date(mon); d.setDate(mon.getDate() + i); const key = dkey(d), done = (S.done[key] || []).length, st = S.album.find(x => x.date === key);
+    const isToday = key === dkey(now), off = !PLAN[wd];
+    return `<div class="day${isToday ? ' today' : ''}${off ? ' off' : ''}"><b>${DAYNAMES[wd]}</b>
+      <div class="stk">${st ? st.s : off ? 'descanso' : ''}</div>
+      ${off && !done ? '' : `<div class="dots">${[0,1,2].map(j => `<i class="${j < done ? 'on' : ''}"></i>`).join('')}</div>`}</div>`;
+  }).join('');
+  const alb = S.album.slice(-30).map(x => x.s).join('');
+  go(`<div class="screen scroll">
+    <div class="bar"><div class="hello"><h1>¡Hola${S.name ? ', ' + esc(S.name) : ''}!</h1><p>${dateTxt}</p></div>
+      <div><button class="parent" id="pbtn" aria-label="Zona de padres: mantén pulsado"><span class="fill"></span>${ICON.lock}<span>Padres</span></button><div class="hint" id="phint"></div></div></div>
+    ${main}
+    <div class="label">Esta semana</div><div class="week">${week}</div>
+    <div class="label">Mis pegatinas · ${S.album.length}</div>
+    <div class="album">${alb || '<em>Termina las tres fichas de un día y ganarás una pegatina.</em>'}</div>
+  </div>`);
+  app.querySelectorAll('.sheet').forEach(b => b.onclick = () => start(b.dataset.area));
+  parentGate($('#pbtn'));
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+
+function parentGate(btn) {
+  let t = null;
+  const down = e => { e.preventDefault(); btn.classList.add('hold'); $('#phint').textContent = 'Mantén pulsado…'; t = setTimeout(() => { t = null; parents(); }, 1400); };
+  const up = () => { btn.classList.remove('hold'); if (t) { clearTimeout(t); t = null; $('#phint').textContent = 'Mantén pulsado 2 segundos'; } };
+  btn.addEventListener('pointerdown', down); btn.addEventListener('pointerup', up); btn.addEventListener('pointerleave', up); btn.addEventListener('pointercancel', up);
+  btn.addEventListener('contextmenu', e => e.preventDefault());
+}
+
+function start(area) {
+  session = { area, level:S.levels[area], items:buildSheet(area), i:0, misses:[], t0:Date.now() };
+  go(`<div class="screen">
+    <div class="top"><button class="round" id="exit" aria-label="Volver al inicio">${ICON.home}</button>
+      <div class="progress" id="prog"></div>
+      <button class="round" id="rep" aria-label="Repetir la pregunta">${ICON.sound}</button></div>
+    <div class="prompt" id="prompt"></div>
+    <div class="stage" id="stage"></div>
+    <div class="options" id="opts"></div></div>`);
+  $('#exit').onclick = () => { speechSynthesis?.cancel?.(); home(); };
+  $('#rep').onclick = () => speak(session.items[session.i].say);
+  showItem();
+}
+
+function showItem() {
+  busy = false;
+  if (cleanup) { cleanup(); cleanup = null; }
+  const it = session.items[session.i];
+  $('#prog').innerHTML = session.items.map((_, j) => `<i class="${j < session.i ? 'on' : j === session.i ? 'cur' : ''}"></i>`).join('');
+  $('#prompt').textContent = it.text;
+  session.misses[session.i] = false;
+  if (it.kind === 'trace') renderTrace(it); else renderChoice(it);
+  speak(it.say);
+}
+
+function renderChoice(it) {
+  const stage = $('#stage'), solo = !it.visual;   // sin dibujo arriba: las respuestas ocupan toda la pantalla
+  stage.hidden = solo; stage.style.flex = '';
+  stage.innerHTML = solo ? '' : `<div class="visual">${it.visual}</div>`;
+  const box = $('#opts'); box.className = 'options'; box.style.setProperty('--n', it.n || it.options.length); box.innerHTML = '';
+  box.style.flex = solo ? '1' : ''; box.style.alignContent = solo ? 'center' : '';
+  it.options.forEach(o => {
+    const b = document.createElement('button'); b.className = 'opt'; b.innerHTML = o.html;
+    if (solo) b.style.minHeight = 'clamp(140px,34vh,300px)';
+    b.onclick = () => answer(b, o); box.append(b);
+  });
+}
+
+function answer(b, o) {
+  if (busy || b.disabled) return;
+  if (o.ok) {
+    busy = true; b.classList.add('right'); chime(); speak(pick(PRAISE));
+    setTimeout(nextItem, 1300);
+  } else {
+    b.classList.add('wrong'); b.disabled = true; bonk(); session.misses[session.i] = true; speak(pick(RETRY));
+  }
+}
+
+function nextItem() {
+  session.i++;
+  if (session.i >= session.items.length) finish(); else showItem();
+}
+
+function renderTrace(it) {
+  const stage = $('#stage'); stage.hidden = false; stage.style.flex = '';
+  stage.innerHTML = '<canvas id="cv" aria-label="Zona para trazar con el dedo"></canvas>';
+  const box = $('#opts'); box.className = 'options tools'; box.style.flex = '';
+  box.innerHTML = '<button class="btn ghost" id="clr">Borrar</button>';
+  const cv = $('#cv'), ctx = cv.getContext('2d'), P = it.path, col = COLORS_HEX[session.area];
+  let strokes = [], cur = null, visited = new Array(P.length).fill(false), drawn = 0, inside = 0, done = false, sc = 1, ox = 0, oy = 0;
+  function fit() {
+    const r = stage.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    cv.width = r.width * dpr; cv.height = r.height * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    sc = Math.min(r.width / 100, r.height / 60) * 0.94; ox = (r.width - 100 * sc) / 2; oy = (r.height - 60 * sc) / 2; draw();
+  }
+  const X = x => ox + x * sc, Y = y => oy + y * sc;
+  function progressIdx() { let k = 0, gaps = 0; for (let i = 0; i < P.length; i++) { if (visited[i]) { k = i; gaps = 0; } else if (++gaps > 5) break; } return k; }
+  function draw() {
+    const r = stage.getBoundingClientRect(); ctx.clearRect(0, 0, r.width, r.height);
+    ctx.lineCap = ctx.lineJoin = 'round';
+    ctx.beginPath(); P.forEach(([x, y], i) => i ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y)));
+    ctx.strokeStyle = '#E3ECF4'; ctx.lineWidth = 11 * sc; ctx.stroke();
+    ctx.setLineDash([2.2 * sc, 3 * sc]); ctx.strokeStyle = '#9FB3C6'; ctx.lineWidth = 1.3 * sc; ctx.stroke(); ctx.setLineDash([]);
+    strokes.forEach(s => { ctx.beginPath(); s.forEach(([x, y], i) => i ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y))); ctx.strokeStyle = col; ctx.lineWidth = 3.6 * sc; ctx.stroke(); });
+    const [sx, sy] = P[0], [ex, ey] = P[P.length - 1];
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    if (it.to) { ctx.font = `${10 * sc}px serif`; ctx.fillText(it.to, X(ex), Y(ey)); }
+    else { ctx.beginPath(); ctx.arc(X(ex), Y(ey), 2.2 * sc, 0, Math.PI * 2); ctx.fillStyle = '#C6D4E1'; ctx.fill(); }
+    if (it.from) { const [px, py] = P[progressIdx()]; ctx.font = `${10 * sc}px serif`; ctx.fillText(it.from, X(px), Y(py)); }
+    else { ctx.beginPath(); ctx.arc(X(sx), Y(sy), 3.4 * sc, 0, Math.PI * 2); ctx.fillStyle = '#26975A'; ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = `800 ${3.6 * sc}px Nunito, sans-serif`; ctx.fillText('1', X(sx), Y(sy) + .2 * sc); }
+  }
+  const toLocal = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left - ox) / sc, (e.clientY - r.top - oy) / sc]; };
+  function addPoint(p) {
+    cur.push(p); drawn++;
+    let md = 1e9; P.forEach((q, i) => { const d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d < md) md = d; if (d < 7) visited[i] = true; });
+    if (md < 9) inside++;
+  }
+  const coverage = () => visited.filter(Boolean).length / P.length;
+  const onDown = e => { if (done) return; e.preventDefault(); cv.setPointerCapture?.(e.pointerId); cur = []; strokes.push(cur); addPoint(toLocal(e)); draw(); };
+  const onMove = e => { if (!cur || done) return; e.preventDefault(); addPoint(toLocal(e)); draw(); };
+  const onUp = () => {
+    if (!cur || done) return; cur = null;
+    if (coverage() >= 0.9) {
+      done = true; busy = true;
+      const acc = inside / Math.max(1, drawn); if (acc < 0.6) session.misses[session.i] = true;
+      chime(); speak(pick(PRAISE)); draw(); setTimeout(nextItem, 1400);
+    }
+  };
+  cv.addEventListener('pointerdown', onDown); cv.addEventListener('pointermove', onMove);
+  cv.addEventListener('pointerup', onUp); cv.addEventListener('pointercancel', onUp);
+  $('#clr').onclick = () => { if (done) return; strokes = []; visited.fill(false); drawn = inside = 0; draw(); };
+  const ro = new ResizeObserver(fit); ro.observe(stage);
+  cleanup = () => ro.disconnect();
+  if (document.fonts?.ready) document.fonts.ready.then(() => { if (!done) draw(); });
+}
+
+const STICKERS = ['🦁','🐼','🐸','🦊','🐙','🦄','🐢','🐳','🦒','🐧','🦋','🐞','🐨','🦉','🐬','🦕','🐯','🐰','🦔','🐝','🐠','🦜','🐮','🐷'];
+function finish() {
+  const { area, level, items, misses, t0 } = session;
+  const total = items.length, first = total - misses.filter(Boolean).length, score = first / total;
+  const k = dkey(today());
+  S.history.push({ date:k, area, level, ok:first, total, secs:Math.round((Date.now() - t0) / 1000) });
+  if (S.history.length > 400) S.history = S.history.slice(-400);
+  S.runs[area].push(+score.toFixed(2));
+  let up = false;
+  const r = S.runs[area];
+  if (r.length >= PASSES_NEEDED && r.slice(-PASSES_NEEDED).every(x => x >= PASS) && S.levels[area] < AREAS[area].levels.length - 1) { S.levels[area]++; S.runs[area] = []; up = true; }
+  S.done[k] = S.done[k] || []; if (!S.done[k].includes(area)) S.done[k].push(area);
+  const plan = todaysPlan() || [];
+  let sticker = null;
+  if (plan.length && plan.every(a => S.done[k].includes(a)) && !S.album.some(x => x.date === k)) { sticker = pick(STICKERS); S.album.push({ date:k, s:sticker }); }
+  save();
+  const stars = score >= 0.8 ? 3 : score >= 0.5 ? 2 : 1;
+  go(`<div class="screen"><div class="reward">
+    ${sticker ? `<div class="big-sticker">${sticker}</div><h1>¡Pegatina del día!</h1><p>Has terminado las tres fichas de hoy.</p>`
+      : `<h1>¡Ficha terminada!</h1><div class="stars">${[0,1,2].map(i => `<span style="animation-delay:${i*180}ms;display:inline-block">${starSVG(i < stars)}</span>`).join('')}</div><p>${AREAS[area].name}</p>`}
+    ${up ? `<div class="level-up">¡Subes de nivel! Ahora: ${AREAS[area].levels[S.levels[area]]}</div>` : ''}
+    <div class="actions">${(todaysPlan() || []).find(a => !S.done[k].includes(a)) ? '<button class="btn" id="nx">Siguiente ficha</button>' : ''}<button class="btn ghost" id="hm">Volver al inicio</button></div>
+  </div></div>`);
+  confetti(sticker ? 70 : 36);
+  speak(sticker ? '¡Muy bien! Has ganado la pegatina del día.' : up ? '¡Fenomenal! Ficha terminada. ¡Subes de nivel!' : '¡Muy bien! Ficha terminada.');
+  $('#hm').onclick = home;
+  const nx = $('#nx'); if (nx) nx.onclick = () => start((todaysPlan() || []).find(a => !S.done[k].includes(a)));
+}
+function confetti(n) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const c = document.createElement('div'); c.className = 'confetti';
+  const cols = ['#E25B37','#2A72D2','#26975A','#8456D2','#F4B400','#F26BAA'];
+  for (let i = 0; i < n; i++) { const p = document.createElement('i'); p.style.left = Math.random() * 100 + '%'; p.style.background = pick(cols); p.style.animationDelay = Math.random() * .6 + 's'; p.style.animationDuration = 1.4 + Math.random() + 's'; c.append(p); }
+  document.body.append(c); setTimeout(() => c.remove(), 3200);
+}
+
+/* ---------- Zona de padres ---------- */
+function parents() {
+  speechSynthesis?.cancel?.();
+  const areaRows = Object.keys(AREAS).map(a => {
+    const L = S.levels[a], runs = S.runs[a].slice(-6);
+    return `<div class="area"><span class="sw" style="background:${COLORS_HEX[a]}"></span>
+      <div style="min-width:0"><b>${AREAS[a].name}</b><small>Nivel ${L + 1} de ${AREAS[a].levels.length}: ${AREAS[a].levels[L]}</small>
+        <div class="runs">${runs.length ? runs.map(x => `<i class="${x >= PASS ? 'good' : x >= 0.5 ? 'mid' : 'low'}" title="${Math.round(x*100)} %"></i>`).join('') : '<span class="muted">Aún sin fichas en este nivel</span>'}</div></div>
+      <div class="stepper"><button data-a="${a}" data-d="-1" aria-label="Bajar nivel">−</button><span>${L + 1}</span><button data-a="${a}" data-d="1" aria-label="Subir nivel">+</button></div></div>`;
+  }).join('');
+  const hist = S.history.slice(-25).reverse().map(h => `<tr><td>${h.date.split('-').reverse().slice(0,2).join('/')}</td><td>${AREAS[h.area].name}</td><td>${h.level + 1}</td><td>${h.ok}/${h.total}</td><td>${Math.floor(h.secs/60)}:${pad(h.secs%60)}</td></tr>`).join('');
+  const struggling = Object.keys(AREAS).filter(a => S.runs[a].length >= 3 && S.runs[a].slice(-3).every(x => x < 0.5));
+  go(`<div class="screen scroll"><div class="panel">
+    <div class="bar"><button class="round" id="back" aria-label="Volver">${ICON.home}</button><div class="hello"><h1>Zona de padres</h1><p>Progreso y ajustes</p></div></div>
+    ${struggling.length ? `<div class="box" style="border-color:#F0C9C7"><h2>Conviene repasar</h2><p>Las tres últimas fichas de <b>${struggling.map(a => AREAS[a].name).join(' y ')}</b> han salido flojas. Baja un nivel unos días: en este método se avanza desde lo que ya sale fácil.</p></div>` : ''}
+    <div class="box"><h2>Niveles</h2>${areaRows}
+      <p class="muted">Cada barra es una ficha: verde con casi todo bien a la primera, amarillo a medias, rojo si costó. Sube solo de nivel tras ${PASSES_NEEDED} fichas seguidas en verde.</p></div>
+    <div class="box"><h2>Cómo funciona</h2><ul>
+      <li><b>De lunes a jueves, unos 10 minutos.</b> Tres fichas al día: Números y Letras siempre, más Trazos (lunes y miércoles), Formas y colores (martes) o Lógica (jueves).</li>
+      <li><b>Poco y todos los días.</b> Mejor a la misma hora, por ejemplo después de merendar. Si está cansado, una sola ficha vale.</li>
+      <li><b>Dominar antes de avanzar.</b> Si falla, la ficha le deja volver a intentarlo, pero solo cuentan los aciertos a la primera para subir de nivel.</li>
+      <li><b>Siéntate a su lado.</b> Para los trazos, que use el dedo índice. Elogia el esfuerzo («¡qué bien te has concentrado!») más que el resultado.</li>
+      <li><b>Viernes a domingo, descanso.</b> Juegos, cuentos y contar cosas en la calle refuerzan lo de la semana.</li></ul></div>
+    <div class="box"><h2>Ajustes</h2>
+      <div class="row"><label for="nm">Nombre del niño o la niña</label><input type="text" id="nm" value="${esc(S.name)}" placeholder="Por ejemplo, Lucas" maxlength="20"></div>
+      <div class="row"><label id="lv">Voz que lee las preguntas</label><button class="switch" role="switch" aria-labelledby="lv" id="sv" aria-checked="${S.voice}"></button></div>
+      <div class="row"><label id="la">Permitir fichas de viernes a domingo</label><button class="switch" role="switch" aria-labelledby="la" id="sa" aria-checked="${S.anyDay}"></button></div>
+      <p class="muted">El progreso se guarda en este dispositivo y navegador. Usa siempre la misma tablet o móvil.</p></div>
+    <div class="box"><h2>Últimas fichas</h2>${hist ? `<div class="tablewrap"><table><thead><tr><th>Día</th><th>Ficha</th><th>Nivel</th><th>A la primera</th><th>Tiempo</th></tr></thead><tbody>${hist}</tbody></table></div>` : '<p class="muted">Aquí aparecerá cada ficha terminada.</p>'}</div>
+    <div class="box"><h2>Empezar de cero</h2><p>Borra niveles, historial y pegatinas de este dispositivo.</p><div class="row" id="rz"><button class="btn ghost danger" id="reset">Borrar progreso</button></div></div>
+  </div></div>`);
+  $('#back').onclick = home;
+  app.querySelectorAll('.stepper button').forEach(b => b.onclick = () => {
+    const a = b.dataset.a, n = S.levels[a] + +b.dataset.d;
+    if (n < 0 || n >= AREAS[a].levels.length) return;
+    S.levels[a] = n; S.runs[a] = []; save(); const y = app.querySelector('.scroll').scrollTop; parents(); app.querySelector('.scroll').scrollTop = y;
+  });
+  $('#nm').oninput = e => { S.name = e.target.value.trim(); save(); };
+  $('#sv').onclick = e => { S.voice = !S.voice; e.currentTarget.setAttribute('aria-checked', S.voice); save(); };
+  $('#sa').onclick = e => { S.anyDay = !S.anyDay; e.currentTarget.setAttribute('aria-checked', S.anyDay); save(); };
+  $('#reset').onclick = () => {
+    $('#rz').innerHTML = '<span style="font-weight:700">¿Seguro? No se puede deshacer.</span><div class="actions"><button class="btn ghost" id="no">Cancelar</button><button class="btn" id="yes" style="background:#D24A45;box-shadow:0 4px 0 #9E2F2B">Sí, borrar</button></div>';
+    $('#no').onclick = parents;
+    $('#yes').onclick = () => { const keep = { name:S.name, voice:S.voice, anyDay:S.anyDay }; S = Object.assign(fresh(), keep); save(); parents(); };
+  };
+}
+
+home();
+</script>
